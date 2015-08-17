@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{1F8ADC62-ADB9-45FD-91A9-CBC027267ECA}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="MapExporter\MapExporter.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="MapExtractor\MapInstaller.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="MapExporter">
+        <MSBuild Projects="MapExporter\MapExporter.dproj"/>
+    </Target>
+    <Target Name="MapExporter:Clean">
+        <MSBuild Projects="MapExporter\MapExporter.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MapExporter:Make">
+        <MSBuild Projects="MapExporter\MapExporter.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MapInstaller">
+        <MSBuild Projects="MapExtractor\MapInstaller.dproj"/>
+    </Target>
+    <Target Name="MapInstaller:Clean">
+        <MSBuild Projects="MapExtractor\MapInstaller.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MapInstaller:Make">
+        <MSBuild Projects="MapExtractor\MapInstaller.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="MapExporter;MapInstaller"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="MapExporter:Clean;MapInstaller:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="MapExporter:Make;MapInstaller:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
