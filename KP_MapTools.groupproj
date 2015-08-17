@@ -6,7 +6,7 @@
         <Projects Include="MapExporter\MapExporter.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="MapExtractor\MapInstaller.dproj">
+        <Projects Include="MapInstaller\MapInstaller.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -27,13 +27,13 @@
         <MSBuild Projects="MapExporter\MapExporter.dproj" Targets="Make"/>
     </Target>
     <Target Name="MapInstaller">
-        <MSBuild Projects="MapExtractor\MapInstaller.dproj"/>
+        <MSBuild Projects="MapInstaller\MapInstaller.dproj"/>
     </Target>
     <Target Name="MapInstaller:Clean">
-        <MSBuild Projects="MapExtractor\MapInstaller.dproj" Targets="Clean"/>
+        <MSBuild Projects="MapInstaller\MapInstaller.dproj" Targets="Clean"/>
     </Target>
     <Target Name="MapInstaller:Make">
-        <MSBuild Projects="MapExtractor\MapInstaller.dproj" Targets="Make"/>
+        <MSBuild Projects="MapInstaller\MapInstaller.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
         <CallTarget Targets="MapExporter;MapInstaller"/>
