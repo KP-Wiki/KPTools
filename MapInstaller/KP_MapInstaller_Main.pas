@@ -19,11 +19,13 @@ type
     lblFileSize: TLabel;
     rbSP: TRadioButton;
     rbMP: TRadioButton;
+    rbCamp: TRadioButton;
     procedure FormCreate(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnInstallClick(Sender: TObject);
     procedure rbSPClick(Sender: TObject);
     procedure rbMPClick(Sender: TObject);
+    procedure rbCampClick(Sender: TObject);
   private
     fKpmapFile, fMapDir: String;
   end;
@@ -43,12 +45,13 @@ end;
 procedure TKP_MapInstaller_MainForm.btnInstallClick(Sender: TObject);
 var
   Item: TListItem;
-  Filename: String;
+  Filename, TopDir: String;
   LastSlash: PChar;
   TA: TTarArchive;
   DirRec: TTarDirRec;
   i: Integer;
 begin
+  Screen.Cursor := crHourGlass;
   for i := 0 to lvMapItems.Items.Count - 1 do
   begin
     Item := lvMapItems.Items[i];
@@ -56,12 +59,23 @@ begin
     LastSlash := StrRScan(PChar(Filename), '/');
     if LastSlash <> nil then
       Filename := String(LastSlash+1);
-    if i = 0 then // Map dir will always be 0.
+    {
+      Tar is Unix, in Unix a Directory is a file type.
+      Since Delphi does not create the Directories via filestream we must create the directory by ourselfs.
+      This comes in handy for campaign support.
+      This looks messy and I wish I could do it better, needs a review.
+    }
+    if (Item.SubItems[3] = 'Directory')then
     begin
-     if not DirectoryExists(ExtractFilePath(Application.ExeName) + fMapDir + FileName) then
-       MkDir(ExtractFilePath(Application.ExeName) + fMapDir + FileName);
-    end
-    else
+      if i = 0 then
+      begin
+        TopDir := FileName + PathDelim;
+        if not DirectoryExists(ExtractFilePath(Application.ExeName) + fMapDir + FileName) then
+          MkDir(ExtractFilePath(Application.ExeName) + fMapDir + FileName);
+      end else
+        if not DirectoryExists(ExtractFilePath(Application.ExeName) + fMapDir + TopDir + FileName) then
+          MkDir(ExtractFilePath(Application.ExeName) + fMapDir + TopDir + FileName);
+    end else
     begin
       TA := TTarArchive.Create(fKpmapFile);
       try
@@ -73,7 +87,6 @@ begin
           ShowMessage('Filename mismatch.');
           Exit;
         end;
-        Screen.Cursor := crHourGlass;
         try
           TA.ReadFile(ExtractFilePath(Application.ExeName) + fMapDir +
                       StringReplace(Item.Caption, '/', PathDelim, [rfReplaceAll])); // Save file to location.
@@ -95,12 +108,16 @@ var
   DirRec: TTarDirRec;
   Pos, Size, Bytes: Int64;
 begin
+  Screen.Cursor := crHourGlass;
   RegisterFileType; // Always update regestry during Alpha as it might change a lot.
   if (ParamStr(1) = '') then // Terminate installer if it is started without a kpmap file.
+  begin
+    Screen.Cursor := crDefault;
     Application.Terminate
-  else
+  end else
   begin // Store param just to be sure and set startup values
     fKpmapFile := ParamStr(1);
+    rbCamp.Checked := false;
     rbMP.Checked := false;
     rbSP.Checked := true;
     fMapDir := PathDelim + 'maps' + PathDelim;
@@ -121,10 +138,8 @@ begin
           Item.Caption := string(DirRec.Name);
           Item.SubItems.Add(convertUnits(DirRec.Size, CONVERTBYTEVAL));
           Item.SubItems.Add(FormatDateTime('dd/mm/yyyy HH:NN:SS', DirRec.DateTime));
-          Item.SubItems.Add(PermissionString(DirRec.Permissions) + ' ' + FILETYPE_NAME[DirRec.FileType]);
-          Item.SubItems.Add(IntToStr(DirRec.UID) + '-' + string(DirRec.UserName) + ' / ' +
-                            IntToStr(DirRec.GID) + '-' + string(DirRec.GroupName));
-          Item.SubItems.Add(string(DirRec.LinkName));
+          Item.SubItems.Add(PermissionString(DirRec.Permissions));
+          Item.SubItems.Add(FILETYPE_NAME[DirRec.FileType]);
           Item.Data := Pointer(DirRec.FilePos); // the data holds the pointer for the file pos within the tarball.
           TA.GetFilePos(Pos, Size);
           Bytes := Bytes + DirRec.Size;
@@ -138,10 +153,20 @@ begin
       lblMapName.Caption := lvMapItems.Items[0].Caption;
     end;
   end;
+  Screen.Cursor := crDefault;
+end;
+
+procedure TKP_MapInstaller_MainForm.rbCampClick(Sender: TObject);
+begin
+  rbCamp.Checked := true;
+  rbMP.Checked := false;
+  rbSP.Checked := false;
+  fMapDir := PathDelim + 'campaigns' + PathDelim;
 end;
 
 procedure TKP_MapInstaller_MainForm.rbMPClick(Sender: TObject);
 begin
+  rbCamp.Checked := false;
   rbMP.Checked := true;
   rbSP.Checked := false;
   fMapDir := PathDelim + 'mapsmp' + PathDelim;
@@ -149,6 +174,7 @@ end;
 
 procedure TKP_MapInstaller_MainForm.rbSPClick(Sender: TObject);
 begin
+  rbCamp.Checked := false;
   rbMP.Checked := false;
   rbSP.Checked := true;
   fMapDir := PathDelim + 'maps' + PathDelim;

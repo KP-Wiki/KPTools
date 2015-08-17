@@ -39,14 +39,14 @@ object KP_MapInstaller_MainForm: TKP_MapInstaller_MainForm
     Caption = 'Map type: '
   end
   object Label6: TLabel
-    Left = 296
+    Left = 416
     Top = 40
     Width = 42
     Height = 13
     Caption = 'file size: '
   end
   object lblFileSize: TLabel
-    Left = 344
+    Left = 464
     Top = 40
     Width = 6
     Height = 13
@@ -81,29 +81,24 @@ object KP_MapInstaller_MainForm: TKP_MapInstaller_MainForm
     Columns = <
       item
         Caption = 'Filename'
-        Width = 200
+        Width = 295
       end
       item
         Alignment = taRightJustify
         Caption = 'Size'
+        Width = 100
       end
       item
         Caption = 'Date (GMT)'
+        Width = 150
+      end
+      item
+        Caption = 'Permissions'
         Width = 100
       end
       item
-        Caption = 'Attributes'
+        Caption = 'File type'
         Width = 100
-      end
-      item
-        Caption = 'User/Group'
-        Width = 120
-      end
-      item
-        Caption = 'Link to'
-        Width = -2
-        WidthType = (
-          -2)
       end>
     HideSelection = False
     ReadOnly = True
@@ -134,5 +129,17 @@ object KP_MapInstaller_MainForm: TKP_MapInstaller_MainForm
     ShowHint = True
     TabOrder = 4
     OnClick = rbMPClick
+  end
+  object rbCamp: TRadioButton
+    Left = 231
+    Top = 39
+    Width = 74
+    Height = 17
+    Hint = 'Select a map type.'
+    Caption = 'Campaign'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 5
+    OnClick = rbCampClick
   end
 end

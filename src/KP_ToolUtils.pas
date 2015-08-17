@@ -12,7 +12,7 @@ const
 
 procedure RegisterFileType;
 procedure Split(Delimiter: Char; Str: string; ListOfStrings: TStrings) ;
-function  GetFiles(const StartDir: String; const List: TStrings): Boolean;
+function GetFiles(const StartDir: String; const List, DirList: TStrings): Boolean;
 function convertUnits(aValueToConvert: Int64; aBaseValue: Integer): string;
 
 implementation
@@ -55,10 +55,10 @@ begin
   ListOfStrings.DelimitedText   := Str;
 end;
 
-function  GetFiles(const StartDir: String; const List: TStrings): Boolean;
+function  GetFiles(const StartDir: String; const List, DirList: TStrings): Boolean;
 var
-  SRec: TSearchRec;
-  Res: Integer;
+  SRec, SDSRec: TSearchRec;
+  Res, SDRes: Integer;
 begin
   if not Assigned(List) then // List gets written to, therefor must exist.
   begin
@@ -68,10 +68,29 @@ begin
   Res := FindFirst(StartDir + '*.*', faAnyfile, SRec);
   if Res = 0 then
   try
-    while res = 0 do
+    while Res = 0 do
     begin
       if (SRec.Attr and faDirectory <> faDirectory) then
-        List.Add(SRec.Name); // We only need the filename
+        List.Add(SRec.Name) // We only need the filename
+      else if (SRec.Attr and faDirectory = faDirectory) and not (SRec.Name = '..') then // Who needs parent dirs anyways?
+      begin
+        DirList.Add(SRec.Name);
+        if not (SRec.Name = '.') then // Search for more files in sub-Directories.
+        begin
+          SDRes := FindFirst(StartDir + SRec.Name + PathDelim + '*.*', faAnyfile, SDSRec);
+          if SDRes = 0 then
+          try
+            while SDRes = 0 do
+            begin
+              if (SDSRec.Attr and faDirectory <> faDirectory)  then
+                List.Add(SRec.Name + '/' + SDSRec.Name); // We only need the filename
+              SDRes := FindNext(SDSRec);
+            end;
+          finally
+            FindClose(SDSRec)
+          end;
+        end;
+      end;
       Res := FindNext(SRec);
     end;
   finally

@@ -40,11 +40,12 @@ end;
 procedure TKP_MapExporter_MainForm.btnExportClick(Sender: TObject);
 var
   i: Integer;
-  SL: TStringList;
+  FileList, DirList: TStringList;
   FTarWriter: TTarWriter;
 begin
-  SL := TStringList.Create;
-  if GetFiles(fMapPath, SL) then // Put all files into a stringList and check if result is true
+  FileList := TStringList.Create;
+  DirList := TStringList.Create;
+  if GetFiles(fMapPath, FileList, DirList) then // Put all files into a stringList and check if result is true
   begin
     try
       // As Pascal hates to create directories by itself, check if it is there, if not make it.
@@ -52,11 +53,16 @@ begin
         mkDir(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps');
       // Create .kpmap tarball in write-mode.
       FTarWriter := TTarWriter.Create(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps' + PathDelim + fMapName + '.kpmap');
-      FTarWriter.AddDir(fMapName, Now);
-      for i := 0 to SL.Count - 1 do // Add all files in stringList to the tarball
-        FTarWriter.AddFile(fMapPath + SL[i], fMapName + PathDelim + SL[i]);
+      for i := 0 to DirList.Count - 1 do
+        if DirList[i] = '.' then // Also a Unix character, means current Directory. Change it to MapName.
+          FTarWriter.AddDir(fMapName, Now)
+        else
+          FTarWriter.AddDir(fMapName + '/' + DirList[i], Now);
+      for i := 0 to FileList.Count - 1 do // Add all files in stringList to the tarball
+        FTarWriter.AddFile(fMapPath + FileList[i], fMapName + PathDelim + FileList[i]);
     finally // Cleanup and exit.
-      FreeAndNil(SL);
+      FreeAndNil(DirList);
+      FreeAndNil(FileList);
       FTarWriter.Finalize;
       FreeAndNil(FTarWriter);
     end;

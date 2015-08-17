@@ -73,7 +73,6 @@ object KP_MapExporter_MainForm: TKP_MapExporter_MainForm
     Caption = '&Cancel'
     TabOrder = 2
     OnClick = btnCancelClick
-    ExplicitTop = 372
   end
   object btnExport: TButton
     Left = 416
@@ -84,6 +83,5 @@ object KP_MapExporter_MainForm: TKP_MapExporter_MainForm
     Caption = '&Export'
     TabOrder = 3
     OnClick = btnExportClick
-    ExplicitTop = 372
   end
 end
