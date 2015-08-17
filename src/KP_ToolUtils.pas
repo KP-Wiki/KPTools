@@ -1,5 +1,4 @@
 unit KP_ToolUtils;
-{$I ..\KP_MapTools.inc}
 
 interface
 uses

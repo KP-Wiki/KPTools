@@ -1,5 +1,4 @@
 unit KP_MapInstaller_Main;
-{$I ..\KP_MapTools.inc}
 
 interface
 

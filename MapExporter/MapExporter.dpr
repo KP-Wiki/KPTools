@@ -3,7 +3,6 @@ program MapExporter;
 uses
   Vcl.Forms,
   KP_MapExporter_Main in 'KP_MapExporter_Main.pas' {KP_MapExporter_MainForm},
-  KP_ToolCommonTypes in '..\src\KP_ToolCommonTypes.pas',
   LibTar in '..\src\LibTar.pas',
   KP_ToolUtils in '..\src\KP_ToolUtils.pas';
 

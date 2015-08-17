@@ -1,5 +1,4 @@
 unit KP_MapExporter_Main;
-{$I ..\KP_MapTools.inc}
 
 interface
 

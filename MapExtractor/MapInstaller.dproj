@@ -102,9 +102,7 @@
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="..\src\KP_ToolUtils.pas"/>
-        <DCCReference Include="..\src\KP_ToolCommonTypes.pas"/>
         <DCCReference Include="..\src\LibTar.pas"/>
-        <None Include="..\KP_MapTools.inc"/>
         <None Include="MapInstaller.manifest"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
