@@ -50,19 +50,23 @@ IN SHORT: Usage and distribution of this source code is free.
 ===============================================================================================
 }
 Unit LibTar;
+{$I ..\KP_MapTools.inc}
 
 Interface
 
 Uses
-(*$IFDEF LINUX*)
+{$IFDEF LINUX}
    Libc,
-(*$ENDIF *)
+{$ENDIF}
 {$IFDEF WIN32}
   {$DEFINE MSWINDOWS} // predefined for D6+/BCB6+, in Delphi 5 MSWINDOWS is not defined
 {$ENDIF}
-(*$IFDEF MSWINDOWS *)
+{$IFDEF MSWINDOWS}
    Windows,
-(*$ENDIF *)
+{$ENDIF}
+{$IFDEF WDC250PLUS}
+  System.AnsiStrings,
+{$ENDIF}
   SysUtils, Classes;
 
 
@@ -363,7 +367,12 @@ Var
   S0: Array[0..255] of AnsiChar;
   Strg: AnsiString;
 Begin
-  StrLCopy(S0, P, MaxLen);
+  {$IFDEF WDC250PLUS}
+    System.AnsiStrings.StrLCopy(S0, P, MaxLen);
+  {$ELSE}
+    StrLCopy(S0, P, MaxLen);
+  {$ENDIF}
+
   Strg := AnsiString(Trim(String(S0)));
   P := PAnsiChar(Strg);
   Result := 0;
@@ -380,7 +389,11 @@ Var
   S0: Array[0..255] of AnsiChar;
   Strg: AnsiString;
 Begin
-  StrLCopy(S0, P, MaxLen);
+  {$IFDEF WDC250PLUS}
+    System.AnsiStrings.StrLCopy(S0, P, MaxLen);
+  {$ELSE}
+    StrLCopy(S0, P, MaxLen);
+  {$ENDIF}
   Strg := AnsiString(Trim(String(S0)));
   P := PAnsiChar(Strg);
   Result := 0;
@@ -455,7 +468,11 @@ Var
   I        : Integer;
 Begin
   FillChar(Rec, RECORDSIZE, 0);
-  StrLCopy(TH.Name, PAnsiChar(DirRec.Name), NAMSIZ);
+  {$IFDEF WDC250PLUS}
+    System.AnsiStrings.StrLCopy(TH.Name, PAnsiChar(DirRec.Name), NAMSIZ);
+  {$ELSE}
+    StrLCopy(TH.Name, PAnsiChar(DirRec.Name), NAMSIZ);
+  {$ENDIF}
   Case DirRec.FileType of
     ftNormal, ftLink: Mode := $08000;
     ftSymbolicLink  : Mode := $0A000;
@@ -496,13 +513,24 @@ Begin
     ftMultiVolume : TH.LinkFlag := 'M';
     ftVolumeHeader: TH.LinkFlag := 'V';
   end;
-  StrLCopy(TH.LinkName, PAnsiChar(DirRec.LinkName), NAMSIZ);
-  StrLCopy(TH.Magic, PAnsiChar(DirRec.Magic + #32#32#32#32#32#32#32#32), 8);
-  StrLCopy(TH.UName, PAnsiChar(DirRec.UserName), TUNMLEN);
-  StrLCopy(TH.GName, PAnsiChar(DirRec.GroupName), TGNMLEN);
+  {$IFDEF WDC250PLUS}
+    System.AnsiStrings.StrLCopy(TH.LinkName, PAnsiChar(DirRec.LinkName), NAMSIZ);
+    System.AnsiStrings.StrLCopy(TH.Magic, PAnsiChar(DirRec.Magic + #32#32#32#32#32#32#32#32), 8);
+    System.AnsiStrings.StrLCopy(TH.UName, PAnsiChar(DirRec.UserName), TUNMLEN);
+    System.AnsiStrings.StrLCopy(TH.GName, PAnsiChar(DirRec.GroupName), TGNMLEN);
+  {$ELSE}
+    StrLCopy(TH.LinkName, PAnsiChar(DirRec.LinkName), NAMSIZ);
+    StrLCopy(TH.Magic, PAnsiChar(DirRec.Magic + #32#32#32#32#32#32#32#32), 8);
+    StrLCopy(TH.UName, PAnsiChar(DirRec.UserName), TUNMLEN);
+    StrLCopy(TH.GName, PAnsiChar(DirRec.GroupName), TGNMLEN);
+  {$ENDIF}
   OctalN(DirRec.MajorDevNo, @TH.DevMajor, 8);
   OctalN(DirRec.MinorDevNo, @TH.DevMinor, 8);
-  StrMove(TH.ChkSum, CHKBLANKS, 8);
+  {$IFDEF WDC250PLUS}
+    System.AnsiStrings.StrMove(TH.ChkSum, CHKBLANKS, 8);
+  {$ELSE}
+    StrMove(TH.ChkSum, CHKBLANKS, 8);
+  {$ENDIF}
   CheckSum := 0;
   For I := 0 to SizeOf(TTarHeader)-1 do
     Inc(CheckSum, Integer(Ord(Rec[I])));
@@ -537,7 +565,7 @@ end;
 Destructor TTarArchive.Destroy;
 Begin
   if FOwnsStream then
-    FStream.Free;
+    FreeAndNil(FStream);
   Inherited Destroy;
 end;
 
@@ -616,7 +644,11 @@ Begin
   DirRec.MinorDevNo := ExtractNumber(@Header.DevMinor);
   HeaderChkSum := ExtractNumber(@Header.ChkSum);   // Calc Checksum
   CheckSum := 0;
-  StrMove(Header.ChkSum, CHKBLANKS, 8);
+  {$IFDEF WDC250PLUS}
+    System.AnsiStrings.StrMove(Header.ChkSum, CHKBLANKS, 8);
+  {$ELSE}
+    StrMove(Header.ChkSum, CHKBLANKS, 8);
+  {$ENDIF}
   For I := 0 to SizeOf(TTarHeader)-1 do
     Inc(CheckSum, Integer(Ord(Rec[I])));
   DirRec.CheckSumOK := Word(CheckSum) = Word(HeaderChkSum);
@@ -675,7 +707,7 @@ Begin
   Try
     ReadFile(FS);
   Finally
-    FS.Free;
+    FreeAndNil(FS);
   end;
 end;
 
@@ -758,7 +790,7 @@ Begin
     FFinalized := True;
   end;
   if FOwnsStream then
-    FStream.Free;
+    FreeAndNil(FStream);
   Inherited Destroy;
 end;
 
@@ -777,7 +809,7 @@ Begin
   Try
     AddStream(S, TarFilename, Date);
   Finally
-    S.Free
+    FreeAndNil(S);
   end;
 end;
 
@@ -827,7 +859,7 @@ Begin
   Try
     AddStream(S, TarFilename, FileDateGmt);
   Finally
-    S.Free;
+    FreeAndNil(S);
   end;
 end;
 

@@ -1,6 +1,9 @@
 unit KP_MapExporter_Main;
 
 interface
+{$WARNINGS ON}
+{$HINTS ON}
+{$WARN UNIT_PLATFORM OFF}
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, StrUtils,

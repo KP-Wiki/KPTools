@@ -109,6 +109,7 @@ var
   Pos, Size, Bytes: Int64;
 begin
   Screen.Cursor := crHourGlass;
+  Bytes := 0;
   RegisterFileType; // Always update regestry during Alpha as it might change a lot.
   if (ParamStr(1) = '') then // Terminate installer if it is started without a kpmap file.
   begin
