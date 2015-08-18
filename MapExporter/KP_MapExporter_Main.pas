@@ -52,14 +52,13 @@ Begin
   if GetFiles(fMapPath, FileList, DirList) then // Put all files into a stringList and check if result is true
   Begin
     Try
-      // As Pascal hates to create directories by itself, check if it is there, if not make it.
       if not SysUtils.DirectoryExists(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps') then
         mkDir(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps');
       // Create .kpmap tarball in write-mode.
       TarFileWriter := TTarWriter.Create(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps'
                                        + PathDelim + fMapName + '.kpmap');
       For i := 0 to DirList.Count - 1 do
-        if DirList[i] = '.' then // Also a Unix character, means current Directory. Change it to MapName.
+        if DirList[i] = '.' then // A Unix character, means current Directory. Change it to MapName.
           TarFileWriter.AddDir(AnsiString(fMapName), Now)
         else
           TarFileWriter.AddDir(AnsiString(fMapName + '/' + DirList[i]), Now);
@@ -81,11 +80,14 @@ Var
   OutPutList: TStringList;
 Begin
   OutPutList := TStringList.Create;
+  OutPutList.Clear;
+  OutPutList.Delimiter := PathDelim;
+  OutPutList.StrictDelimiter := True; // Requires Delphi 2006 or newer.
   if SelectDirectory('Select a directory', ExtractFilePath(Application.ExeName), fMapPath) then
   Begin
     fMapPath := fMapPath + PathDelim;
     edtMapFolderPath.Text := fMapPath;
-    Split(PathDelim, ExcludeTrailingPathDelimiter(fMapPath), OutPutList);
+    OutPutList.DelimitedText := ExcludeTrailingPathDelimiter(fMapPath);
     fMapName := OutPutList[OutPutList.Count - 1];
     lblFileName.Caption := fMapName;
   end;

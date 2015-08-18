@@ -10,9 +10,7 @@ Const
   UNITSUFFIX: Array[0..7] of String = ( '', 'K', 'M', 'G', 'T', 'E', 'Z', 'Y' );
   CONVERTBYTEVAL: Word = 1024;
 
-
 Procedure RegisterFileType;
-Procedure Split(Delimiter: Char; Str: String; ListOfStrings: TStrings) ;
 Function GetFiles(Const StartDir: String; Const FileList, DirList: TStrings): Boolean;
 Function convertUnits(aValueToConvert: Int64; aBaseValue: Integer): String;
 
@@ -45,15 +43,6 @@ Begin
   Finally
     FreeAndNil(Reg);
   end;
-end;
-
-// Split text to string list
-Procedure Split(Delimiter: Char; Str: String; ListOfStrings: TStrings) ;
-Begin
-  ListOfStrings.Clear;
-  ListOfStrings.Delimiter       := Delimiter;
-  ListOfStrings.StrictDelimiter := True; // Requires Delphi 2006 or newer.
-  ListOfStrings.DelimitedText   := Str;
 end;
 
 Function GetFiles(Const StartDir: String; Const FileList, DirList: TStrings): Boolean;
