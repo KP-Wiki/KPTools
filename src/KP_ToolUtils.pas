@@ -1,28 +1,29 @@
-unit KP_ToolUtils;
+Unit KP_ToolUtils;
 
-interface
-uses
+Interface
+
+Uses
   Registry, ShlObj, Windows, vcl.Forms, StrUtils, SysUtils, Classes, Math;
 
-const
-  UNITSUFFIXBYTE: array[0..7] of string = ( 'B', 'KB', 'MB', 'GB', 'TB', 'EB', 'ZB', 'YB' );
-  UNITSUFFIX: array[0..7] of string = ( '', 'K', 'M', 'G', 'T', 'E', 'Z', 'Y' );
+Const
+  UNITSUFFIXBYTE: Array[0..7] of String = ( 'B', 'KB', 'MB', 'GB', 'TB', 'EB', 'ZB', 'YB' );
+  UNITSUFFIX: Array[0..7] of String = ( '', 'K', 'M', 'G', 'T', 'E', 'Z', 'Y' );
   CONVERTBYTEVAL: Word = 1024;
 
 
-procedure RegisterFileType;
-procedure Split(Delimiter: Char; Str: string; ListOfStrings: TStrings) ;
-function GetFiles(const StartDir: String; const List, DirList: TStrings): Boolean;
-function convertUnits(aValueToConvert: Int64; aBaseValue: Integer): string;
+Procedure RegisterFileType;
+Procedure Split(Delimiter: Char; Str: String; ListOfStrings: TStrings) ;
+Function GetFiles(Const StartDir: String; Const FileList, DirList: TStrings): Boolean;
+Function convertUnits(aValueToConvert: Int64; aBaseValue: Integer): String;
 
-implementation
+Implementation
 
-procedure RegisterFileType;
-var
+Procedure RegisterFileType;
+Var
   Reg: TRegistry;
-begin
+Begin
   Reg := TRegistry.Create;
-  try
+  Try
     Reg.RootKey := HKEY_CLASSES_ROOT;
     Reg.OpenKey('.kpmap', True); // Create a new key named to our file extention
     Reg.WriteString('', 'MapInstaller.kpmap'); // This adds HKEY_CLASSES_ROOT\.kpmap\(Default) = 'MapInstaller.kpmap'
@@ -41,53 +42,53 @@ begin
     Reg.CloseKey;
     // Finally, we want the Windows Explorer to realize we added our file type by using the SHChangeNotify API.
     SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nil, nil);
-  finally
+  Finally
     FreeAndNil(Reg);
   end;
 end;
 
 // Split text to string list
-procedure Split(Delimiter: Char; Str: string; ListOfStrings: TStrings) ;
-begin
+Procedure Split(Delimiter: Char; Str: String; ListOfStrings: TStrings) ;
+Begin
   ListOfStrings.Clear;
   ListOfStrings.Delimiter       := Delimiter;
   ListOfStrings.StrictDelimiter := True; // Requires Delphi 2006 or newer.
   ListOfStrings.DelimitedText   := Str;
 end;
 
-function  GetFiles(const StartDir: String; const List, DirList: TStrings): Boolean;
-var
-  SRec, SDSRec: TSearchRec;
+Function GetFiles(Const StartDir: String; Const FileList, DirList: TStrings): Boolean;
+Var
+  SRec, SubDirSRec: TSearchRec;
   Res, SDRes: Integer;
-begin
-  if not Assigned(List) then // List gets written to, therefor must exist.
-  begin
+Begin
+  if not Assigned(FileList) then // List gets written to, therefor must exist.
+  Begin
     Result := False;
     Exit;
   end;
   Res := FindFirst(StartDir + '*.*', faAnyfile, SRec);
   if Res = 0 then
-  try
-    while Res = 0 do
-    begin
+  Try
+    While Res = 0 do
+    Begin
       if (SRec.Attr and faDirectory <> faDirectory) then
-        List.Add(SRec.Name) // We only need the filename
-      else if (SRec.Attr and faDirectory = faDirectory) and not (SRec.Name = '..') then // Who needs parent dirs anyways?
-      begin
+        FileList.Add(SRec.Name) // We only need the filename
+      else if (SRec.Attr and faDirectory = faDirectory) and not (SRec.Name = '..') then // Who needs parent dirs anyways? We create a new file structure in Tar.
+      Begin
         DirList.Add(SRec.Name);
         if not (SRec.Name = '.') then // Search for more files in sub-Directories.
-        begin
-          SDRes := FindFirst(StartDir + SRec.Name + PathDelim + '*.*', faAnyfile, SDSRec);
+        Begin
+          SDRes := FindFirst(StartDir + SRec.Name + PathDelim + '*.*', faAnyfile, SubDirSRec);
           if SDRes = 0 then
-          try
-            while SDRes = 0 do
-            begin
-              if (SDSRec.Attr and faDirectory <> faDirectory)  then
-                List.Add(SRec.Name + '/' + SDSRec.Name); // We only need the filename
-              SDRes := FindNext(SDSRec);
+          Try
+            While SDRes = 0 do
+            Begin
+              if (SubDirSRec.Attr and faDirectory <> faDirectory)  then
+                FileList.Add(SRec.Name + '/' + SubDirSRec.Name); // We only need the filename
+              SDRes := FindNext(SubDirSRec);
             end;
-          finally
-            FindClose(SDSRec)
+          Finally
+            FindClose(SubDirSRec)
           end;
         end;
       end;
@@ -96,29 +97,29 @@ begin
   finally
     FindClose(SRec)
   end;
-  Result := (List.Count > 0);
+  Result := (FileList.Count > 0);
 end;
 
-function convertUnits(aValueToConvert: Int64; aBaseValue: Integer): string;
-var
-  fResult: string;
+Function convertUnits(aValueToConvert: Int64; aBaseValue: Integer): string;
+Var
+  fResult: String;
   ConvertedValue: Integer;
-begin
+Begin
   if (aBaseValue = CONVERTBYTEVAL) then // Byte conversion
-  begin
+  Begin
     if (aValueToConvert < aBaseValue) then // This fixes a syntax error(Zero division)
       fResult := FloatToStr(RoundTo(aValueToConvert, -2)) + ' ' + UNITSUFFIXBYTE[0]
     else
-    begin
+    Begin
       ConvertedValue := round(min(logn(aBaseValue, aValueToConvert), High(UNITSUFFIXBYTE)));
       fResult := FloatToStr(RoundTo((aValueToConvert / power(aBaseValue, ConvertedValue)), -2)) + ' ' + UNITSUFFIXBYTE[ConvertedValue];
     end;
   end else // All others (Metric)
-  begin
+  Begin
     if (aValueToConvert < aBaseValue) then // This fixes a syntax error(Zero division)
       fResult := FloatToStr(RoundTo(aValueToConvert, -2)) + ' ' + UNITSUFFIX[0]
     else
-    begin
+    Begin
       ConvertedValue := round(min(logn(aBaseValue, aValueToConvert), High(UNITSUFFIX)));
       fResult := FloatToStr(RoundTo((aValueToConvert / power(aBaseValue, ConvertedValue)), -2)) + ' ' + UNITSUFFIX[ConvertedValue];
     end;

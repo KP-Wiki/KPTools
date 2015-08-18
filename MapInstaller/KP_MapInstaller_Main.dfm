@@ -116,7 +116,7 @@ object KP_MapInstaller_MainForm: TKP_MapInstaller_MainForm
     ParentShowHint = False
     ShowHint = True
     TabOrder = 3
-    OnClick = rbSPClick
+    OnClick = rbClick
   end
   object rbMP: TRadioButton
     Left = 151
@@ -128,7 +128,7 @@ object KP_MapInstaller_MainForm: TKP_MapInstaller_MainForm
     ParentShowHint = False
     ShowHint = True
     TabOrder = 4
-    OnClick = rbMPClick
+    OnClick = rbClick
   end
   object rbCamp: TRadioButton
     Left = 231
@@ -140,6 +140,6 @@ object KP_MapInstaller_MainForm: TKP_MapInstaller_MainForm
     ParentShowHint = False
     ShowHint = True
     TabOrder = 5
-    OnClick = rbCampClick
+    OnClick = rbClick
   end
 end

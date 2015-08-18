@@ -1,17 +1,17 @@
-unit KP_MapExporter_Main;
+Unit KP_MapExporter_Main;
 
-interface
+Interface
 {$WARNINGS ON}
 {$HINTS ON}
 {$WARN UNIT_PLATFORM OFF}
 
-uses
+Uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, StrUtils,
   Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.FileCtrl,
   KP_ToolUtils, LibTar;
 
-type
-  TKP_MapExporter_MainForm = class(TForm)
+Type
+  TKP_MapExporter_MainForm = Class(TForm)
     Label1: TLabel;
     edtMapFolderPath: TEdit;
     btnMapFolderSelect: TButton;
@@ -20,68 +20,69 @@ type
     lblNotice: TLabel;
     lblFileName: TLabel;
     Label2: TLabel;
-    procedure btnCancelClick(Sender: TObject);
-    procedure btnExportClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure btnMapFolderSelectClick(Sender: TObject);
-  private
+    Procedure btnCancelClick(Sender: TObject);
+    Procedure btnExportClick(Sender: TObject);
+    Procedure FormCreate(Sender: TObject);
+    Procedure btnMapFolderSelectClick(Sender: TObject);
+  Private
     fMapPath, fMapName: String;
   end;
 
-var
+Var
   KP_MapExporter_MainForm: TKP_MapExporter_MainForm;
 
-implementation
+Implementation
 
 {$R *.dfm}
 
-procedure TKP_MapExporter_MainForm.btnCancelClick(Sender: TObject);
-begin
+Procedure TKP_MapExporter_MainForm.btnCancelClick(Sender: TObject);
+Begin
   Application.Terminate;
 end;
 
-procedure TKP_MapExporter_MainForm.btnExportClick(Sender: TObject);
-var
+Procedure TKP_MapExporter_MainForm.btnExportClick(Sender: TObject);
+Var
   i: Integer;
   FileList, DirList: TStringList;
-  FTarWriter: TTarWriter;
-begin
+  TarFileWriter: TTarWriter;
+Begin
   Screen.Cursor := crHourGlass;
   FileList := TStringList.Create;
   DirList := TStringList.Create;
   if GetFiles(fMapPath, FileList, DirList) then // Put all files into a stringList and check if result is true
-  begin
-    try
+  Begin
+    Try
       // As Pascal hates to create directories by itself, check if it is there, if not make it.
       if not SysUtils.DirectoryExists(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps') then
         mkDir(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps');
       // Create .kpmap tarball in write-mode.
-      FTarWriter := TTarWriter.Create(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps' + PathDelim + fMapName + '.kpmap');
-      for i := 0 to DirList.Count - 1 do
+      TarFileWriter := TTarWriter.Create(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps'
+                                       + PathDelim + fMapName + '.kpmap');
+      For i := 0 to DirList.Count - 1 do
         if DirList[i] = '.' then // Also a Unix character, means current Directory. Change it to MapName.
-          FTarWriter.AddDir(AnsiString(fMapName), Now)
+          TarFileWriter.AddDir(AnsiString(fMapName), Now)
         else
-          FTarWriter.AddDir(AnsiString(fMapName + '/' + DirList[i]), Now);
-      for i := 0 to FileList.Count - 1 do // Add all files in stringList to the tarball
-        FTarWriter.AddFile(fMapPath + FileList[i], AnsiString(fMapName + PathDelim + FileList[i]));
-    finally // Cleanup and exit.
+          TarFileWriter.AddDir(AnsiString(fMapName + '/' + DirList[i]), Now);
+      For i := 0 to FileList.Count - 1 do // Add all files in stringList to the tarball
+        TarFileWriter.AddFile(fMapPath + FileList[i], AnsiString(fMapName + PathDelim + FileList[i]));
+    Finally // Cleanup and exit.
       FreeAndNil(DirList);
       FreeAndNil(FileList);
-      FTarWriter.Finalize;
-      FreeAndNil(FTarWriter);
+      TarFileWriter.Finalize;
+      FreeAndNil(TarFileWriter);
     end;
     Screen.Cursor := crDefault;
     Application.Terminate;
   end;
 end;
 
-procedure TKP_MapExporter_MainForm.btnMapFolderSelectClick(Sender: TObject);
-var
+Procedure TKP_MapExporter_MainForm.btnMapFolderSelectClick(Sender: TObject);
+Var
   OutPutList: TStringList;
-begin
+Begin
   OutPutList := TStringList.Create;
   if SelectDirectory('Select a directory', ExtractFilePath(Application.ExeName), fMapPath) then
-  begin
+  Begin
     fMapPath := fMapPath + PathDelim;
     edtMapFolderPath.Text := fMapPath;
     Split(PathDelim, ExcludeTrailingPathDelimiter(fMapPath), OutPutList);
@@ -91,11 +92,12 @@ begin
   FreeAndNil(OutPutList);
 end;
 
-procedure TKP_MapExporter_MainForm.FormCreate(Sender: TObject);
-begin
+Procedure TKP_MapExporter_MainForm.FormCreate(Sender: TObject);
+Begin
   fMapPath := ExtractFilePath(Application.ExeName);
   edtMapFolderPath.Text := fMapPath;
-  lblNotice.Caption := 'Notice:' + sLineBreak + 'Exported map installer files get stored in' + sLineBreak + fMapPath + 'Exported maps';
+  lblNotice.Caption := 'Notice:' + sLineBreak + 'Exported map installer files get stored in'
+                     + sLineBreak + fMapPath + 'Exported maps' + PathDelim;
 end;
 
 end.
