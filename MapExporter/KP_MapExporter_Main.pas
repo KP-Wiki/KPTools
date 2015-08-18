@@ -3,8 +3,8 @@ unit KP_MapExporter_Main;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, FileCtrl,
-  Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, StrUtils,
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, StrUtils,
+  Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.FileCtrl,
   KP_ToolUtils, LibTar;
 
 type
@@ -43,29 +43,31 @@ var
   FileList, DirList: TStringList;
   FTarWriter: TTarWriter;
 begin
+  Screen.Cursor := crHourGlass;
   FileList := TStringList.Create;
   DirList := TStringList.Create;
   if GetFiles(fMapPath, FileList, DirList) then // Put all files into a stringList and check if result is true
   begin
     try
       // As Pascal hates to create directories by itself, check if it is there, if not make it.
-      if not DirectoryExists(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps') then
+      if not SysUtils.DirectoryExists(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps') then
         mkDir(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps');
       // Create .kpmap tarball in write-mode.
       FTarWriter := TTarWriter.Create(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps' + PathDelim + fMapName + '.kpmap');
       for i := 0 to DirList.Count - 1 do
         if DirList[i] = '.' then // Also a Unix character, means current Directory. Change it to MapName.
-          FTarWriter.AddDir(fMapName, Now)
+          FTarWriter.AddDir(AnsiString(fMapName), Now)
         else
-          FTarWriter.AddDir(fMapName + '/' + DirList[i], Now);
+          FTarWriter.AddDir(AnsiString(fMapName + '/' + DirList[i]), Now);
       for i := 0 to FileList.Count - 1 do // Add all files in stringList to the tarball
-        FTarWriter.AddFile(fMapPath + FileList[i], fMapName + PathDelim + FileList[i]);
+        FTarWriter.AddFile(fMapPath + FileList[i], AnsiString(fMapName + PathDelim + FileList[i]));
     finally // Cleanup and exit.
       FreeAndNil(DirList);
       FreeAndNil(FileList);
       FTarWriter.Finalize;
       FreeAndNil(FTarWriter);
     end;
+    Screen.Cursor := crDefault;
     Application.Terminate;
   end;
 end;
