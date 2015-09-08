@@ -6,7 +6,7 @@ Interface
 {$WARN UNIT_PLATFORM OFF}
 
 Uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, StrUtils,
+  SysUtils, Classes,
   Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.FileCtrl,
   KP_ToolUtils, LibTar;
 
@@ -49,11 +49,13 @@ Begin
   Screen.Cursor := crHourGlass;
   FileList := TStringList.Create;
   DirList := TStringList.Create;
+
   if GetFiles(fMapPath, FileList, DirList) then // Put all files into a stringList and check if result is true
   Begin
     Try
       if not SysUtils.DirectoryExists(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps') then
         mkDir(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps');
+
       // Create .kpmap tarball in write-mode.
       TarFileWriter := TTarWriter.Create(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps'
                                        + PathDelim + fMapName + '.kpmap');
@@ -62,6 +64,7 @@ Begin
           TarFileWriter.AddDir(AnsiString(fMapName), Now)
         else
           TarFileWriter.AddDir(AnsiString(fMapName + '/' + DirList[i]), Now);
+
       For i := 0 to FileList.Count - 1 do // Add all files in stringList to the tarball
         TarFileWriter.AddFile(fMapPath + FileList[i], AnsiString(fMapName + PathDelim + FileList[i]));
     Finally // Cleanup and exit.
@@ -70,6 +73,7 @@ Begin
       TarFileWriter.Finalize;
       FreeAndNil(TarFileWriter);
     end;
+
     Screen.Cursor := crDefault;
     Application.Terminate;
   end;
@@ -83,6 +87,7 @@ Begin
   OutPutList.Clear;
   OutPutList.Delimiter := PathDelim;
   OutPutList.StrictDelimiter := True; // Requires Delphi 2006 or newer.
+
   if SelectDirectory('Select a directory', ExtractFilePath(Application.ExeName), fMapPath) then
   Begin
     fMapPath := fMapPath + PathDelim;
@@ -91,6 +96,7 @@ Begin
     fMapName := OutPutList[OutPutList.Count - 1];
     lblFileName.Caption := fMapName;
   end;
+
   FreeAndNil(OutPutList);
 end;
 
