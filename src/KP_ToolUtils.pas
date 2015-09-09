@@ -3,7 +3,7 @@ Unit KP_ToolUtils;
 Interface
 
 Uses
-  SysUtils, Classes, Math;
+  Windows, SysUtils, Variants, Classes, Math;
 
 Const
   UNITSUFFIXBYTE: Array[0..7] of String = ( 'B', 'KB', 'MB', 'GB', 'TB', 'EB', 'ZB', 'YB' );
@@ -12,6 +12,8 @@ Const
 
 Function GetFiles(Const StartDir: String; Const FileList, DirList: TStrings): Boolean;
 Function convertUnits(aValueToConvert: Int64; aBaseValue: Integer): String;
+Function GetEnvVarValue(Const VarName: String): String;
+Function Randomstring(strLen: Integer): string;
 
 Implementation
 
@@ -68,6 +70,7 @@ Begin
   Result := (FileList.Count > 0);
 end;
 
+
 Function convertUnits(aValueToConvert: Int64; aBaseValue: Integer): string;
 Var
   fResult: String;
@@ -95,6 +98,41 @@ Begin
   end;
 
   result := fResult;
+end;
+
+
+Function GetEnvVarValue(Const VarName: String): String;
+Var
+  BufSize: Integer;  // buffer size required for value
+Begin
+  // Get required buffer size (inc. terminal #0)
+  BufSize := GetEnvironmentVariable(
+    PChar(VarName), nil, 0);
+
+  if BufSize > 0 then
+  Begin
+    // Read env var value into result string
+    SetLength(Result, BufSize - 1);
+    GetEnvironmentVariable(PChar(VarName),
+      PChar(Result), BufSize);
+  end
+  else
+    // No such environment variable
+    Result := '';
+end;
+
+
+function Randomstring(strLen: Integer): string;
+var
+  str: string;
+begin
+  Randomize;
+  str := 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  Result := '';
+  repeat
+    Result := Result + str[Random(Length(str)) + 1];
+  until
+    (Length(Result) = strLen);
 end;
 
 end.

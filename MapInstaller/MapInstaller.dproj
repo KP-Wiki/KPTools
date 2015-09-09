@@ -89,6 +89,7 @@
         <DCC_DebugInformation>0</DCC_DebugInformation>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <DCC_Define>madExcept;$(DCC_Define)</DCC_Define>
         <Icon_MainIcon>MapInstaller_Icon.ico</Icon_MainIcon>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -103,6 +104,7 @@
         </DCCReference>
         <DCCReference Include="..\src\KP_ToolUtils.pas"/>
         <DCCReference Include="..\src\LibTar.pas"/>
+        <DCCReference Include="..\src\Gzip.pas"/>
         <None Include="MapInstaller.manifest"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

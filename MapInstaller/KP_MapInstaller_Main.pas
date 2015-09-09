@@ -5,7 +5,7 @@ Interface
 Uses
   Classes, SysUtils,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls,
-  KP_ToolUtils, LibTar;
+  KP_ToolUtils, LibTar, gzip;
 
 Type
   TKP_MapInstaller_MainForm = Class(TForm)
@@ -24,8 +24,10 @@ Type
     Procedure btnCancelClick(Sender: TObject);
     Procedure btnInstallClick(Sender: TObject);
     Procedure rbClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   Private
-    fKpmapFile, fMapDir: String;
+    fKpmapFile, fTarFile, fMapDir: String;
+    gzip: HCkGzip;
   end;
 
 Var
@@ -80,7 +82,7 @@ Begin
           MkDir(ExtractFilePath(Application.ExeName) + fMapDir + TopDir + FileName);
     end else
     Begin
-      TarFileArchive := TTarArchive.Create(fKpmapFile);
+      TarFileArchive := TTarArchive.Create(fTarFile);
 
       Try
         TarFileArchive.Reset; // Always reset, this must be done for Tar (Else you might find your files being a mess)
@@ -117,6 +119,8 @@ Var
 Begin
   Screen.Cursor := crHourGlass;
   Bytes := 0;
+  gzip := CkGzip_Create();
+  CkGzip_UnlockComponent(gzip, PWideChar(Randomstring(10)));
 
   if not DirectoryExists(ExtractFilePath(Application.ExeName) + PathDelim + 'campaigns') then
     MkDir(ExtractFilePath(Application.ExeName) + PathDelim + 'campaigns');
@@ -135,6 +139,8 @@ Begin
   else
   Begin // Store param just to be sure and set startup values
     fKpmapFile := ParamStr(1);
+    fTarFile := GetEnvVarValue('temp') + PathDelim + 'kpunpack_temp.tar';
+    CkGzip_UncompressFile(gzip, PWideChar(fKpmapFile), PWideChar(fTarFile));
     rbCamp.Checked := false;
     rbMP.Checked := false;
     rbSP.Checked := true;
@@ -147,7 +153,7 @@ Begin
 
     Try
       lvMapItems.Items.Clear;
-      TarFileArchive := TTarArchive.Create(fKpmapFile);
+      TarFileArchive := TTarArchive.Create(fTarFile);
 
       Try
         TarFileArchive.Reset; // Reset is a must.
@@ -176,6 +182,13 @@ Begin
   end;
 
   Screen.Cursor := crDefault;
+end;
+
+procedure TKP_MapInstaller_MainForm.FormDestroy(Sender: TObject);
+begin
+  CkGzip_Dispose(gzip);
+  if FileExists(fTarFile) then
+    DeleteFile(fTarFile);
 end;
 
 Procedure TKP_MapInstaller_MainForm.rbClick(Sender: TObject);

@@ -1,10 +1,16 @@
 program MapExporter;
 
 uses
+  madExcept,
+  madLinkDisAsm,
+  madListHardware,
+  madListProcesses,
+  madListModules,
   Vcl.Forms,
   KP_MapExporter_Main in 'KP_MapExporter_Main.pas' {KP_MapExporter_MainForm},
   LibTar in '..\src\LibTar.pas',
-  KP_ToolUtils in '..\src\KP_ToolUtils.pas';
+  KP_ToolUtils in '..\src\KP_ToolUtils.pas',
+  Gzip in '..\src\Gzip.pas';
 
 {$R *.res}
 

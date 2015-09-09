@@ -12,6 +12,7 @@ object KP_MapInstaller_MainForm: TKP_MapInstaller_MainForm
   Font.Style = []
   OldCreateOrder = False
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   DesignSize = (
     766
     306)

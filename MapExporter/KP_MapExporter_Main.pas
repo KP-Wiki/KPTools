@@ -8,7 +8,7 @@ Interface
 Uses
   SysUtils, Classes,
   Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.FileCtrl,
-  KP_ToolUtils, LibTar;
+  KP_ToolUtils, LibTar, Gzip;
 
 Type
   TKP_MapExporter_MainForm = Class(TForm)
@@ -45,20 +45,25 @@ Var
   i: Integer;
   FileList, DirList: TStringList;
   TarFileWriter: TTarWriter;
+  gzip: HCkGzip;
+  tarDir: PWideChar;
 Begin
   Screen.Cursor := crHourGlass;
   FileList := TStringList.Create;
   DirList := TStringList.Create;
+  gzip := CkGzip_Create();
+  CkGzip_UnlockComponent(gzip, PWideChar(Randomstring(10)));
 
   if GetFiles(fMapPath, FileList, DirList) then // Put all files into a stringList and check if result is true
   Begin
     Try
       if not SysUtils.DirectoryExists(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps') then
         mkDir(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps');
-
+      tarDir := PWideChar(GetEnvVarValue('temp') + PathDelim + fMapName + '_temp.tar');
       // Create .kpmap tarball in write-mode.
-      TarFileWriter := TTarWriter.Create(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps'
-                                       + PathDelim + fMapName + '.kpmap');
+      TarFileWriter := TTarWriter.Create(tarDir);
+                                       { ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps'
+                                       + PathDelim + fMapName + '.kpmap'); }
       For i := 0 to DirList.Count - 1 do
         if DirList[i] = '.' then // A Unix character, means current Directory. Change it to MapName.
           TarFileWriter.AddDir(AnsiString(fMapName), Now)
@@ -72,6 +77,17 @@ Begin
       FreeAndNil(FileList);
       TarFileWriter.Finalize;
       FreeAndNil(TarFileWriter);
+    end;
+
+    try
+      //CkGzip_ReadFile(gzip, tarDir, TarFileMemData);
+      CkGzip_CompressFile2(gzip, tarDir, PWideChar(fMapName + '_temp.tar'),
+                           PWideChar(ExtractFilePath(Application.ExeName) + PathDelim + 'Exported maps'
+                                   + PathDelim + fMapName + '.kpmap'));
+    finally
+      CkGzip_Dispose(gzip);
+      //FreeAndNil(gzip);
+      DeleteFile(GetEnvVarValue('temp') + PathDelim + fMapName + '_temp.tar');
     end;
 
     Screen.Cursor := crDefault;
